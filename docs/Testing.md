@@ -5,7 +5,7 @@
 Tests run from the project root using the local virtual environment:
 
 ```sh
-cd /home/ssn/data/projects/python-can-canable
+cd "$(git rev-parse --show-toplevel)"
 .venv/bin/python ...
 ```
 

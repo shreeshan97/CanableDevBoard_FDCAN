@@ -184,10 +184,12 @@ Clone the upstream Elmü firmware, then apply the project patch and add the
 board-specific make target:
 
 ```sh
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+
 git clone https://github.com/Elmue/CANable-2.5-firmware-Slcan-and-Candlelight /tmp/elmue-canable
 cd /tmp/elmue-canable
-git apply /home/ssn/data/projects/python-can-canable/firmware/canable_devboard_fdcan.patch
-cp /home/ssn/data/projects/python-can-canable/firmware/Make_G431_Candle_CanableDevBoard_FDCAN Build/
+git apply "$REPO_ROOT/firmware/canable_devboard_fdcan.patch"
+cp "$REPO_ROOT/firmware/Make_G431_Candle_CanableDevBoard_FDCAN" Build/
 make -s -f Build/Make_G431_Candle_CanableDevBoard_FDCAN
 ```
 
@@ -207,7 +209,8 @@ NRST is not connected, so reset via SWD first or the STM32G4 flash algorithm
 can time out:
 
 ```sh
-BIN=/home/ssn/data/projects/python-can-canable/artifacts/CanableDevBoard-FDCAN-8MHz.bin
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+BIN="$REPO_ROOT/artifacts/CanableDevBoard-FDCAN-8MHz.bin"
 
 openocd -f interface/stlink.cfg -f target/stm32g4x.cfg \
   -c "init; reset halt; flash write_image erase $BIN 0x08000000; \

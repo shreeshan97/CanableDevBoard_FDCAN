@@ -1,4 +1,4 @@
-# CANable 2.5 / Candlelight 2.5 — Project Notes
+# CanableDevBoard FDCAN — Project Notes
 
 Live-hardware bring-up notes for **CanableDevBoard FDCAN**, an STM32G431 adapter with
 an 8 MHz crystal running ElmüSoft Candlelight 2.5 firmware. An old FYSETC UCAN
