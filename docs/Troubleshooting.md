@@ -1,5 +1,7 @@
 # Troubleshooting
 
+The new adapter discussed here is designated **CanableDevTestBoard**.
+
 ## New board appears as `0483:df11` DFU instead of a CAN adapter
 
 ### Symptoms
@@ -135,66 +137,67 @@ Expected:
 - product string `Candlelight 2.5 - WeAct Studio v2`;
 - serial `209D3889594550052`;
 - `gs_usb` binds `1-1.2:1.0`;
-- `can1` appears.
+- a CAN interface appears. After the last reflash it was named `can0`, while
+  the old FYSETC adapter became `can1`. Always verify with `ip -d link show`
+  and the `parentdev` field.
 
 If the product string is missing or USB resets repeatedly, check the USB cable,
 hub power, and whether the board is actually in DFU.
 
 ## Frames sent but not received between adapters
 
-Work through the physical layer first:
+This was resolved by rebuilding the firmware for the actual **8 MHz** crystal.
+See [Firmware_8MHz.md](Firmware_8MHz.md) and the final results in
+[Testing.md](Testing.md).
 
-1. Confirm both links are up:
+If it recurs, check in this order:
 
-   ```sh
-   ip -d link show can0
-   ip -d link show can1
-   ```
-
-   Expected `state UP`, `ERROR-ACTIVE`, bitrate `500000`, loopback off.
-
-2. Confirm wiring:
-
-   ```text
-   CANH <-> CANH
-   CANL <-> CANL
-   GND  <-> GND
-   ```
-
-3. Confirm termination: about `60 Ω` across CANH/CANL with power off if two
-   `120 Ω` terminators are installed.
-
-4. Watch both interfaces:
+1. **Firmware/crystal match.** The original DFU was built with
+   `QUARTZ_FREQU=16000000`. On an 8 MHz board this gives an 80 MHz FDCAN clock
+   while `gs_usb` reports 160 MHz. Loopback still passes, but real traffic
+   fails with bit-stuffing (`0x08`) and no-ACK (`0x20`) error frames. Verify
+   with:
 
    ```sh
-   candump -t d can0 can1
+   openocd -f interface/stlink.cfg -f target/stm32g4x.cfg \
+     -c 'init; echo "PLLCFGR=0x[mrw 0x4002100C]"; shutdown'
    ```
 
-5. Check error counters:
+   Correct value: `0x11102803` (`PLLN = 40`). Old wrong value:
+   `0x11101403` (`PLLN = 20`).
 
-   ```sh
-   ip -s link show can0
-   ip -s link show can1
-   ```
+2. **Interface names.** After reflashing, the new adapter became `can0` and the
+   old FYSETC became `can1`. Confirm with `ip -d link show` and `parentdev`.
 
-   Rising TX errors on the sender usually mean no ACK from the other node —
-   wiring, termination, bitrate mismatch, or the receiver being offline.
+3. **Link state.** Both links must be `UP`, `ERROR-ACTIVE`, bitrate `500000`,
+   loopback off. Cycle a link down/up to clear residual error-passive state.
 
-6. Isolate with the known-good adapter:
+4. **Physical layer.** CANH↔CANH, CANL↔CANL, common GND, about `60 Ω` across
+   CANH/CANL with power off. These were verified correct during bring-up;
+   swapping CANH/CANL reduced the error flood but did not restore data, so
+   polarity was not the cause.
 
-   ```sh
-   sudo ip link set can0 down
-   sudo ip link set can0 type can bitrate 500000 loopback on
-   sudo ip link set can0 up
-   .venv/bin/python scripts/test_can_loopback.py --channel can0
-   ```
+5. **Loopback isolation.** Run
+   [`scripts/test_can_loopback.py`](../scripts/test_can_loopback.py) on each
+   adapter separately. A pass proves the host/driver/controller path works but
+   does **not** prove the bitrate is correct: internal loopback uses the same
+   wrong timing on both TX and RX and therefore still succeeds.
 
-   If this passes, `python-can`, SocketCAN, and the old adapter are fine.
+6. **Error-frame filtering.** The adapter test script now ignores error frames;
+   kernel-level filtering was also tested and still showed zero valid frames,
+   ruling out socket-buffer flooding.
 
-7. Retest both directions with
-   [`scripts/test_can_between_adapters.py`](../scripts/test_can_between_adapters.py).
+## Pull resistors on PB8/PB9
 
-This is the current open issue; the BOOT0 problem is already resolved.
+No external pull-up or pull-down is required on `PB8` (`FDCAN1_RX`) or `PB9`
+(`FDCAN1_TX`). `Firmware/can.c` configures both as `GPIO_MODE_AF_PP` with
+`GPIO_NOPULL`; the transceiver drives RXD, and its TXD input normally has an
+internal pull-up to recessive. The `120 Ω` termination belongs on CANH/CANL,
+not on the MCU pins.
+
+On the WeActStudioV2 board, `PB8` is shared with BOOT0 and the board already
+has a hardware pull-down. The option-byte fix makes BOOT0 pin state irrelevant,
+so leave that resistor in place and do not add a pull-up there.
 
 ## `ip link` returns permission denied
 
@@ -203,12 +206,16 @@ configuration commands:
 
 ```sh
 sudo ip link set can0 down
-sudo ip link set can1 down
-sudo ip link set can0 type can bitrate 500000 loopback off restart-ms 100
-sudo ip link set can1 type can bitrate 500000 restart-ms 100
+sudo ip link set can0 type can bitrate 500000 loopback off
 sudo ip link set can0 up
+
+sudo ip link set can1 down
+sudo ip link set can1 type can bitrate 500000 loopback off
 sudo ip link set can1 up
 ```
+
+Do not use `restart-ms` on the new Candlelight adapter; its `gs_usb` driver
+returns `Error: Device doesn't support restart from Bus Off.`
 
 ## NRST is not connected
 

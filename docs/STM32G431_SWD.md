@@ -71,8 +71,17 @@ After this command the board re-enumerated as:
 serial 209D3889594550052
 ```
 
-and `can1` appeared. This workaround should no longer be needed now that the
+and a CAN interface appeared (named `can1` at that time; later re-enumeration
+assigned `can0`). This workaround should no longer be needed now that the
 BOOT0 option byte is fixed.
+
+After flashing a new image, use `reset run` rather than the vector jump so the
+USB peripheral re-enumerates cleanly:
+
+```sh
+openocd -f interface/stlink.cfg -f target/stm32g4x.cfg \
+  -c 'init; reset run; sleep 200; shutdown'
+```
 
 ## FLASH / option-byte registers
 
