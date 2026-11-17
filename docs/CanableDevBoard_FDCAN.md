@@ -133,14 +133,17 @@ can1 (old FYSETC):      gs_usb, clock 48000000,
 
 ## Python environment
 
-From the project root:
+From the project root, create the environment once:
 
 ```sh
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
 .venv/bin/python --version
 .venv/bin/pip list | grep -Ei 'python-can|pyusb|pypdf'
 ```
 
-Installed for bring-up: `python-can==4.6.1`, `pyusb==1.3.1`, `pypdf`.
+Pinned for the tests: `python-can==4.6.1`, `pyusb==1.3.1`. `pypdf` is optional and only
+used for local datasheet text extraction.
 
 See [Testing.md](Testing.md) for scripts and results.
 
@@ -167,6 +170,12 @@ real nodes could not communicate: bit-stuffing and no-ACK error frames. With
 | `artifacts/CanableDevBoard-FDCAN-8MHz.dfu` | DfuSe wrapper for USB DFU flashing |
 | `artifacts/Candlelight2.5-upstream-16MHz-reference.dfu` | Original upstream 16 MHz image, kept for reference |
 
+Verify the committed images:
+
+```sh
+cd artifacts && sha256sum -c SHA256SUMS
+```
+
 ### Building
 
 An aarch64-hosted Arm toolchain is needed on this machine:
@@ -176,6 +185,7 @@ mkdir -p /tmp/opencode/armtool
 cd /tmp/opencode/armtool
 curl -Lo arm-gnu-toolchain.tar.xz \
   'https://github.com/synthetos/gcc-arm-none-eabi-archive/releases/download/12.2.Rel1/arm-gnu-toolchain-12.2.rel1-linux-aarch64-arm-none-eabi.tar.xz'
+echo '7ee332f7558a984e239e768a13aed86c6c3ac85c90b91d27f4ed38d7ec6b3e8c  arm-gnu-toolchain.tar.xz' | sha256sum -c -
 tar -xf arm-gnu-toolchain.tar.xz
 export PATH=/tmp/opencode/armtool/arm-gnu-toolchain-12.2.rel1-aarch64-arm-none-eabi/bin:$PATH
 ```
@@ -187,11 +197,14 @@ board-specific make target:
 REPO_ROOT="$(git rev-parse --show-toplevel)"
 
 git clone https://github.com/Elmue/CANable-2.5-firmware-Slcan-and-Candlelight /tmp/elmue-canable
+git -C /tmp/elmue-canable checkout 12aa9fa1210757923507f6d390f7f909049f4e84
 cd /tmp/elmue-canable
 git apply "$REPO_ROOT/firmware/canable_devboard_fdcan.patch"
 cp "$REPO_ROOT/firmware/Make_G431_Candle_CanableDevBoard_FDCAN" Build/
 make -s -f Build/Make_G431_Candle_CanableDevBoard_FDCAN
 ```
+
+The patch was verified against upstream commit `12aa9fa`; other revisions may need rebasing.
 
 The patch adds a `CanableDevBoard_FDCAN` board definition (8 MHz, matching pin map)
 and overrides the USB product string to `CanableDevBoard FDCAN CAN adapter`. The make

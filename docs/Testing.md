@@ -6,14 +6,13 @@ Tests run from the project root using the local virtual environment:
 
 ```sh
 cd "$(git rev-parse --show-toplevel)"
+python3 -m venv .venv              # once
+.venv/bin/pip install -r requirements.txt
 .venv/bin/python ...
 ```
 
-Relevant packages:
-
-- `python-can==4.6.1`
-- `pyusb==1.3.1`
-- `pypdf` (documentation extraction only)
+Relevant packages are pinned in `requirements.txt`: `python-can==4.6.1`,
+`pyusb==1.3.1`, and optional `pypdf` for documentation extraction.
 
 SocketCAN interfaces must be configured as described in
 [CanableDevBoard_FDCAN.md](CanableDevBoard_FDCAN.md).
@@ -69,15 +68,16 @@ Both links were `UP`, `ERROR-ACTIVE`, bitrate `500000`, loopback off.
 
 ## Loopback smoke test — CanableDevBoard FDCAN
 
-`scripts/test_can_loopback.py` temporarily requires SocketCAN loopback mode:
+`scripts/test_can_loopback.py` uses python-can's `receive_own_messages=True`, so the
+interface only needs to be `UP` — switching it into SocketCAN loopback mode is not
+required:
 
 ```sh
-sudo ip link set can0 down
-sudo ip link set can0 type can bitrate 500000 loopback on
-sudo ip link set can0 up
-
 .venv/bin/python scripts/test_can_loopback.py --channel can0 --timeout 2
 ```
+
+Enabling interface loopback also works, but must be turned off again before
+adapter↔adapter tests.
 
 Result:
 
@@ -200,6 +200,21 @@ Look for:
 - TX and RX counters increasing as expected;
 - RX/TX dropped counters staying at zero;
 - bitrate `500000` and loopback off.
+
+## Re-verification (2026-11-18)
+
+Live hardware was rechecked with `python-can==4.6.1` in an isolated virtual environment:
+
+| Check | Result |
+| --- | --- |
+| `/sys/bus/usb/devices/1-1.2/product` | `CanableDevBoard FDCAN CAN adapter` |
+| `ip -d link show can0` / `can1` | `UP`, `ERROR-ACTIVE`, `500000`; clocks 160/48 MHz |
+| `test_can_loopback.py` on `can0` and `can1` | PASS (interface loopback mode not needed) |
+| `test_can_between_adapters.py` `can0`→`can1` (`0x321`) | MATCH, 0 error frames |
+| `test_can_between_adapters.py` `can1`→`can0` (`0x322`) | MATCH, 0 error frames |
+| 20 alternating iterations, both directions | 20/20 MATCH |
+| SWD register read | `PLLCFGR=0x11102803`, `OPTR=0xFBEFFCAA` |
+| `cd artifacts && sha256sum -c SHA256SUMS` | all artifacts OK |
 
 ## Result summary
 

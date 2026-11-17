@@ -23,11 +23,13 @@ Local ST reference material in [`datasheets/`](datasheets/):
 - `DS_stm32g431c6.pdf` — STM32G431 pinout (PB8/BOOT0)
 - `pm0214-stm32-cortexm4-mcus-and-mpus-programming-manual-stmicroelectronics.pdf` — Cortex-M4 core/SWD details
 
-## Current status (last verified)
+These PDFs total about 43 MB and are kept for offline reference. A sparse checkout can
+omit `docs/datasheets/` if repository size is a concern.
 
-- BOOT0 fix **applied and verified**: `FLASH_OPTR = 0xFBEFFCAA`, CanableDevBoard FDCAN boots the Candlelight app directly (no DFU fallback).
-- Root cause of adapter↔adapter failures found: the board has an **8 MHz** crystal, but the supplied firmware was built for **16 MHz**, making the real FDCAN clock 80 MHz instead of the reported 160 MHz.
-- Corrected 8 MHz firmware built, flashed, and verified (`PLLCFGR = 0x11102803`), with the USB product string set to `CanableDevBoard FDCAN CAN adapter`.
-- Both adapters are `UP` at `500000 bit/s`; `can0` is CanableDevBoard FDCAN, `can1` is the old FYSETC adapter.
-- Adapter↔adapter frame transfer **PASS in both directions**; 20/20 alternating iterations passed after the name change, with 0 error frames.
-- After the reflash/re-enumeration, `can0` is the CanableDevBoard FDCAN and `can1` is the old FYSETC adapter. Verify names from `ip -d link show` before each test.
+## Current status
+
+The canonical status summary is [../README.md#current-status](../README.md#current-status).
+It was re-verified on live hardware on 2026-11-18; test results are in [Testing.md](Testing.md).
+
+Interface names can swap after re-enumeration. Always verify `can0`/`can1` with
+`ip -d link show` and the `parentdev` field before testing.

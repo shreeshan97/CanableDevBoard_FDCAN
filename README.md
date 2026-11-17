@@ -22,6 +22,8 @@ is tracked separately.
   - `can1` = old FYSETC UCAN (`1-1.1`)
 - Adapter-to-adapter frame transfer passed in both directions with 0 error frames,
   including 20/20 alternating iterations.
+- Re-verified on live hardware on 2026-11-18; see [docs/Testing.md](docs/Testing.md).
+  This section is the canonical status summary; the other docs link here.
 
 ## Board identity
 
@@ -43,19 +45,24 @@ the devices. Use sysfs `product` or serial to identify them.
 
 ```text
 docs/        Bring-up notes, firmware/SWD procedures, tests, troubleshooting
-artifacts/   Corrected 8 MHz firmware and original 16 MHz reference image
+artifacts/   Corrected 8 MHz firmware, original 16 MHz reference image, SHA256SUMS
 firmware/    Reproducible Elmü firmware patch and CanableDevBoard_FDCAN make target
 scripts/     SocketCAN loopback and adapter-to-adapter test scripts
 ```
+
+The ST PDFs under `docs/datasheets/` are about 43 MB in total. They are included for
+offline reference; use a sparse checkout if clone size matters.
 
 Start with [docs/README.md](docs/README.md). The main board note is
 [docs/CanableDevBoard_FDCAN.md](docs/CanableDevBoard_FDCAN.md).
 
 ## Quick start
 
-From the repository root:
+Create the test environment once, from the repository root:
 
 ```sh
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
 .venv/bin/python --version
 .venv/bin/pip list | grep -Ei 'python-can|pyusb'
 ```
@@ -105,6 +112,12 @@ Artifacts:
 | `artifacts/CanableDevBoard-FDCAN-8MHz.bin` | Raw image flashed at `0x08000000` |
 | `artifacts/CanableDevBoard-FDCAN-8MHz.dfu` | DfuSe wrapper for USB DFU flashing |
 | `artifacts/Candlelight2.5-upstream-16MHz-reference.dfu` | Original upstream 16 MHz image, kept for reference |
+
+Verify the committed images:
+
+```sh
+cd artifacts && sha256sum -c SHA256SUMS
+```
 
 Reproducible build inputs:
 

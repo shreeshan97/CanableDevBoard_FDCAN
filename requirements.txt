@@ -1,0 +1,6 @@
+# Python environment for the SocketCAN bring-up/test scripts.
+python-can==4.6.1
+pyusb==1.3.1
+
+# Optional: only used for local PDF datasheet text extraction.
+pypdf
