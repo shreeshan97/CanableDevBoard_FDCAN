@@ -2,10 +2,17 @@
 
 ## Scope
 
-Target firmware for the new adapter is the ElmüSoft Candlelight 2.5 image in
-[`../artifacts/Candlelight2.5 - WeActStudioV2 - STM32G431.dfu`](../artifacts/Candlelight2.5%20-%20WeActStudioV2%20-%20STM32G431.dfu).
-It is a combined Slcan + Candlelight codebase with ElmüSoft extensions, not just the
-stock `gs_usb` candle firmware.
+Target firmware for CanableDevBoard FDCAN is the ElmüSoft Candlelight 2.5 codebase,
+rebuilt for its 8 MHz crystal with the USB product string `CanableDevBoard FDCAN CAN
+adapter`. The currently flashed image is
+[`../artifacts/CanableDevBoard-FDCAN-8MHz.bin`](../artifacts/CanableDevBoard-FDCAN-8MHz.bin).
+The original upstream 16 MHz image is kept at
+[`../artifacts/Candlelight2.5-upstream-16MHz-reference.dfu`](../artifacts/Candlelight2.5-upstream-16MHz-reference.dfu)
+for reference only.
+
+This is a combined Slcan + Candlelight codebase with ElmüSoft extensions, not
+just the stock `gs_usb` candle firmware. See
+[CanableDevBoard_FDCAN.md](CanableDevBoard_FDCAN.md) for the build and flash procedure.
 
 Reference material:
 
@@ -18,7 +25,7 @@ Reference material:
 | State | USB ID | Product / serial | Notes |
 | --- | --- | --- | --- |
 | DFU bootloader | `0483:df11` | `STM32 STLink`-style DFU string, serial `209D38895945` | ST system bootloader; alts for internal flash, option bytes, OTP |
-| Candlelight app | `1d50:606f` | `Candlelight 2.5 - WeAct Studio v2`, serial `209D3889594550052`, bcdDevice `26.10` | Interface 0 = Candlelight/`gs_usb` → `can1`; interface 1 = DFU |
+| Candlelight app | `1d50:606f` | `CanableDevBoard FDCAN CAN adapter`, serial `209D3889594550052`, bcdDevice `26.10` | Interface 0 = Candlelight/`gs_usb` → `can0`; interface 1 = DFU |
 
 > The old FYSETC adapter is also `1d50:606f`. Identify adapters by USB port,
 > product string, and serial — not by VID/PID alone.

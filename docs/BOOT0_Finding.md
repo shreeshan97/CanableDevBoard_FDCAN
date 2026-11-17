@@ -2,7 +2,7 @@
 
 ## Symptom
 
-The new WeActStudio v2 board repeatedly appeared as an ST DFU device instead of a CAN adapter:
+The CanableDevBoard FDCAN repeatedly appeared as an ST DFU device instead of a CAN adapter:
 
 ```
 Bus 001 Device ...: ID 0483:df11 STMicroelectronics STM Device in DFU Mode
@@ -106,7 +106,7 @@ USB enumeration changed from `0483:df11` (DFU) to:
 
 ```
 Bus 001 Device 019: ID 1d50:606f OpenMoko, Inc. Geschwister Schneider CAN adapter
-/sys/bus/usb/devices/1-1.2/product  = Candlelight 2.5 - WeAct Studio v2
+/sys/bus/usb/devices/1-1.2/product  = CanableDevBoard FDCAN CAN adapter
 /sys/bus/usb/devices/1-1.2/serial   = 209D3889594550052
 ```
 

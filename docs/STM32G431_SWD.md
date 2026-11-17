@@ -6,7 +6,7 @@
 | --- | --- |
 | Debug probe | ST-LINK/V2.1 (`STLINK V2J45M30`) |
 | Probe USB | `0483:3752`, serial `00660049370000024E504332` |
-| Target | STM32G431 on WeActStudio USB2CANFD v2 |
+| Target | STM32G431 on CanableDevBoard FDCAN |
 | SWD DPIDR | `0x2ba01477` |
 | Target voltage | about `3.27 V` |
 | SWD clock | requested `2000 kHz`, used `1800 kHz` |
@@ -31,7 +31,7 @@ around `pc = 0x1fff4b14`, `msp = 0x20002cf0`, confirming DFU/bootloader mode.
 The Elmue DfuSe artifact is:
 
 ```text
-artifacts/Candlelight2.5 - WeActStudioV2 - STM32G431.dfu
+artifacts/Candlelight2.5-upstream-16MHz-reference.dfu
 ```
 
 For SWD programming, a raw binary was extracted from that artifact:
@@ -67,7 +67,7 @@ openocd -f interface/stlink.cfg -f target/stm32g4x.cfg \
 After this command the board re-enumerated as:
 
 ```text
-1d50:606f  Candlelight 2.5 - WeAct Studio v2
+1d50:606f  CanableDevBoard FDCAN CAN adapter
 serial 209D3889594550052
 ```
 

@@ -1,8 +1,8 @@
 # Troubleshooting
 
-The new adapter discussed here is designated **CanableDevTestBoard**.
+The target board discussed here is **CanableDevBoard FDCAN**.
 
-## New board appears as `0483:df11` DFU instead of a CAN adapter
+## CanableDevBoard FDCAN appears as `0483:df11` DFU instead of a CAN adapter
 
 ### Symptoms
 
@@ -44,7 +44,7 @@ OB0  = 0xFBEFFCAA
 USB should then show:
 
 ```text
-1d50:606f  Candlelight 2.5 - WeAct Studio v2
+1d50:606f  CanableDevBoard FDCAN CAN adapter
 ```
 
 See [BOOT0_Finding.md](BOOT0_Finding.md) and
@@ -118,7 +118,7 @@ kernel driver.
 
 See [Elmue_Firmware.md](Elmue_Firmware.md).
 
-## No `can1` interface after the app boots
+## No CAN interface appears after the app boots
 
 Check:
 
@@ -134,7 +134,7 @@ dmesg | tail -40
 
 Expected:
 
-- product string `Candlelight 2.5 - WeAct Studio v2`;
+- product string `CanableDevBoard FDCAN CAN adapter`;
 - serial `209D3889594550052`;
 - `gs_usb` binds `1-1.2:1.0`;
 - a CAN interface appears. After the last reflash it was named `can0`, while
@@ -147,7 +147,7 @@ hub power, and whether the board is actually in DFU.
 ## Frames sent but not received between adapters
 
 This was resolved by rebuilding the firmware for the actual **8 MHz** crystal.
-See [Firmware_8MHz.md](Firmware_8MHz.md) and the final results in
+See [CanableDevBoard_FDCAN.md](CanableDevBoard_FDCAN.md) and the final results in
 [Testing.md](Testing.md).
 
 If it recurs, check in this order:
@@ -166,7 +166,7 @@ If it recurs, check in this order:
    Correct value: `0x11102803` (`PLLN = 40`). Old wrong value:
    `0x11101403` (`PLLN = 20`).
 
-2. **Interface names.** After reflashing, the new adapter became `can0` and the
+2. **Interface names.** After reflashing, the CanableDevBoard FDCAN became `can0` and the
    old FYSETC became `can1`. Confirm with `ip -d link show` and `parentdev`.
 
 3. **Link state.** Both links must be `UP`, `ERROR-ACTIVE`, bitrate `500000`,
@@ -195,7 +195,7 @@ No external pull-up or pull-down is required on `PB8` (`FDCAN1_RX`) or `PB9`
 internal pull-up to recessive. The `120 Ω` termination belongs on CANH/CANL,
 not on the MCU pins.
 
-On the WeActStudioV2 board, `PB8` is shared with BOOT0 and the board already
+On the CanableDevBoard FDCAN, `PB8` is shared with BOOT0 and the board already
 has a hardware pull-down. The option-byte fix makes BOOT0 pin state irrelevant,
 so leave that resistor in place and do not add a pull-up there.
 
@@ -214,7 +214,7 @@ sudo ip link set can1 type can bitrate 500000 loopback off
 sudo ip link set can1 up
 ```
 
-Do not use `restart-ms` on the new Candlelight adapter; its `gs_usb` driver
+Do not use `restart-ms` on the CanableDevBoard FDCAN; its `gs_usb` driver
 returns `Error: Device doesn't support restart from Bus Off.`
 
 ## NRST is not connected

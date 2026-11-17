@@ -1,0 +1,50 @@
+diff --git a/Firmware/settings.h b/Firmware/settings.h
+index 49c4bcc..4905fbc 100644
+--- a/Firmware/settings.h
++++ b/Firmware/settings.h
+@@ -245,6 +245,30 @@ typedef enum // sent as 8 bit
+     // -------------------
+     #define ALLOW_DISABLE_BOOT0 0  // do not allow to disable pin BOOT0 (not required due to correct hardware design)
+ 
++#elif defined(CanableDevBoard_FDCAN)
++
++    // Maximum 24 characters!
++    #define ADAPTER_NAME        "CanableDevBoard FDCAN"
++
++    // CanableDevBoard FDCAN has a STM32G431 processor and an 8 MHz quartz.
++    // The pin map matches the WeActStudioV2 upstream configuration.
++    #define LED_RX_PINS         GPIO_PIN_0
++    #define LED_RX_PORTS        GPIOA
++    #define LED_TX_PINS         GPIO_PIN_1
++    #define LED_TX_PORTS        GPIOA
++    #define LED_PWR_PIN         GPIO_PIN_2
++    #define LED_PWR_PORT        GPIOA
++    // -------------------
++    // CAN RXD and BOOT0 share PB8. The board holds it low in hardware; the
++    // option-byte fix makes the pin state irrelevant for boot.
++    #define CAN_TRX_ENABLE_PIN  GPIO_PIN_7
++    #define CAN_TRX_ENABLE_PORT GPIOB
++    #define CAN_TRX_ENABLE_ON   GPIO_PIN_RESET
++    // -------------------
++    #define MAX_CAN_BAUDRATE    5  // CAN transceiver chip CA-IS2062A limits to 5 Mbaud
++    // -------------------
++    #define ALLOW_DISABLE_BOOT0 0
++
+ #elif defined(BigTreeTechU2C)
+ 
+     // Maximum 24 characters!
+diff --git a/Firmware/usb_ctrlreq.c b/Firmware/usb_ctrlreq.c
+index 8864560..48b188b 100644
+--- a/Firmware/usb_ctrlreq.c
++++ b/Firmware/usb_ctrlreq.c
+@@ -28,7 +28,9 @@ extern USBD_HandleTypeDef  USB_Handle;
+ // extern uint8_t USBD_OtherSpeedDesc[];      // only for High Speed USB devices
+ // extern uint8_t USBD_DeviceQualifierDesc[]; // only for High Speed USB devices
+ 
+-#if defined(Candlelight)
++#if defined(CanableDevBoard_FDCAN)
++    #define USBD_PRODUCT_STRING  "CanableDevBoard FDCAN CAN adapter"
++#elif defined(Candlelight)
+     #define USBD_PRODUCT_STRING  "Candlelight 2.5 - " ADAPTER_NAME
+ #else
+     #define USBD_PRODUCT_STRING  "Slcan 2.5 - " ADAPTER_NAME

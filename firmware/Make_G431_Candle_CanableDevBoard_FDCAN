@@ -1,0 +1,18 @@
+# CANable Candlelight 2.5 firmware for CanableDevBoard FDCAN
+#
+# STM32G431 board with an 8 MHz HSE crystal. The pin map matches the upstream
+# WeActStudioV2 configuration, but the board itself is CanableDevBoard FDCAN.
+#
+# Build from /tmp/elmue-canable:
+#   make -s -f Build/Make_G431_Candle_CanableDevBoard_FDCAN
+
+# TARGET_BOARD, TARGET_FIRMWARE and TARGET_MCU: maximum 24 characters!
+
+TARGET_FIRMWARE = Candlelight
+TARGET_BOARD    = CanableDevBoard_FDCAN
+TARGET_MCU      = STM32G431
+
+# This board has an 8 MHz quartz.
+QUARTZ_FREQU    = 8000000
+
+include Build/GCC_Rules.mk

@@ -16,7 +16,7 @@ Relevant packages:
 - `pypdf` (documentation extraction only)
 
 SocketCAN interfaces must be configured as described in
-[Hardware_Setup.md](Hardware_Setup.md).
+[CanableDevBoard_FDCAN.md](CanableDevBoard_FDCAN.md).
 
 ## Live interface mapping
 
@@ -25,7 +25,7 @@ kernel assigned the names as follows:
 
 | Interface | USB port | Adapter | Reported clock |
 | --- | --- | --- | --- |
-| `can0` | `1-1.2` | CanableDevTestBoard (new Candlelight 2.5 / WeAct) | `160000000` |
+| `can0` | `1-1.2` | CanableDevBoard FDCAN | `160000000` |
 | `can1` | `1-1.1` | old FYSETC UCAN | `48000000` |
 
 This is the reverse of the earlier mapping. Confirm with:
@@ -36,6 +36,17 @@ ip -d link show can1
 ```
 
 and check the `parentdev` field rather than relying on the interface name.
+
+After the rename to CanableDevBoard FDCAN, the device reported:
+
+```sh
+cat /sys/bus/usb/devices/1-1.2/product
+# CanableDevBoard FDCAN CAN adapter
+```
+
+Plain `lsusb` still prints `OpenMoko, Inc. Geschwister Schneider CAN adapter`
+because that comes from the host USB ID database for `1d50:606f`, not from the
+device. Use sysfs `product` to confirm the name.
 
 ## Configuration used for the final tests
 
@@ -51,12 +62,12 @@ sudo ip link set can1 type can bitrate 500000 loopback off
 sudo ip link set can1 up
 ```
 
-`restart-ms` was omitted on the new adapter: its `gs_usb` driver rejects it with
+`restart-ms` was omitted on the CanableDevBoard FDCAN: its `gs_usb` driver rejects it with
 `Error: Device doesn't support restart from Bus Off.`
 
 Both links were `UP`, `ERROR-ACTIVE`, bitrate `500000`, loopback off.
 
-## Loopback smoke test — new adapter
+## Loopback smoke test — CanableDevBoard FDCAN
 
 `scripts/test_can_loopback.py` temporarily requires SocketCAN loopback mode:
 
@@ -82,7 +93,7 @@ Stats showed 1 TX and 1 RX, zero errors. Loopback was then turned off again.
 
 The old FYSETC adapter had previously passed the same loopback check (as `can0`
 before the interface rename), confirming `gs_usb`, SocketCAN, and `python-can`
-work independently of the new board.
+work independently of CanableDevBoard FDCAN.
 
 ## Adapter↔adapter test
 
@@ -91,7 +102,7 @@ Script: [`../scripts/test_can_between_adapters.py`](../scripts/test_can_between_
 The receiver thread ignores CAN error frames (they are counted and reported as
 `skipped`), then compares ID and payload of the first valid data frame.
 
-### new → old
+### CanableDevBoard FDCAN → old FYSETC
 
 ```sh
 .venv/bin/python scripts/test_can_between_adapters.py \
@@ -103,12 +114,12 @@ Result:
 
 ```text
 TX can0: id=0x321 dlc=8 data=1122334455667788 send_ok=None
-RX can1: skipped 1 error frame(s)
+RX can1: skipped 0 error frame(s)
 RX can1: id=0x321 dlc=8 data=1122334455667788 ext=False
 MATCH
 ```
 
-### old → new
+### old FYSETC → CanableDevBoard FDCAN
 
 ```sh
 .venv/bin/python scripts/test_can_between_adapters.py \
@@ -154,7 +165,7 @@ Error frame decodes from the ElmüSoft status format:
 SWD sampling of `GPIOB_IDR` showed `PB8`/`PB9` toggling during transmission, so
 the signals reached the MCU. Live RCC registers showed `PLLCFGR = 0x11101403`
 (`PLLN = 20`), consistent with a 16 MHz assumption. The crystal was later
-confirmed to be 8 MHz; see [Firmware_8MHz.md](Firmware_8MHz.md).
+confirmed to be 8 MHz; see [CanableDevBoard_FDCAN.md](CanableDevBoard_FDCAN.md).
 
 ## Manual CAN tools
 
@@ -185,7 +196,7 @@ ip -d link show can1
 Look for:
 
 - `ERROR-ACTIVE` state (a few residual errors from earlier failed runs may keep
-  the new adapter in `ERROR-WARNING`/`ERROR-PASSIVE` until the link is cycled);
+  the CanableDevBoard FDCAN in `ERROR-WARNING`/`ERROR-PASSIVE` until the link is cycled);
 - TX and RX counters increasing as expected;
 - RX/TX dropped counters staying at zero;
 - bitrate `500000` and loopback off.
@@ -195,10 +206,11 @@ Look for:
 | Test | Status | Notes |
 | --- | --- | --- |
 | Old FYSETC loopback | PASS | `0x123`, `11 22 33 44` |
-| New Candlelight loopback at 500 kbit/s | PASS | `0x123`, `11 22 33 44` |
+| CanableDevBoard FDCAN loopback at 500 kbit/s | PASS | `0x123`, `11 22 33 44` |
 | Elmue firmware flash + SWD verify | PASS | raw image at `0x08000000` |
 | BOOT0 fix / direct app boot | PASS | `OPTR = 0xFBEFFCAA`, `1d50:606f` |
 | 8 MHz firmware rebuild and flash | PASS | `PLLCFGR = 0x11102803` |
-| New → old frame delivery | PASS | `MATCH`, 1 error frame skipped |
-| Old → new frame delivery | PASS | `MATCH`, 0 error frames |
+| CanableDevBoard FDCAN → old FYSETC frame delivery | PASS | `MATCH`, 0 error frames |
+| old FYSETC → CanableDevBoard FDCAN frame delivery | PASS | `MATCH`, 0 error frames |
+| USB product string rename | PASS | `product = CanableDevBoard FDCAN CAN adapter` |
 | Alternating 20-frame stress | PASS | 20/20 `MATCH` |
