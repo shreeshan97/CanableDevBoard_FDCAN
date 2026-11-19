@@ -1,13 +1,19 @@
 # CanableDevBoard_FDCAN
 
-Live-hardware bring-up, firmware, and validation notes for **CanableDevBoard FDCAN** — an
-STM32G431 CAN adapter with an **8 MHz HSE crystal** running ElmüSoft Candlelight 2.5
-firmware. An old FYSETC UCAN adapter is used as the known-working reference.
+Bring-up notes for running the [ElmüSoft CANable 2.5 firmware (Slcan and Candlelight)](https://github.com/Elmue/CANable-2.5-firmware-Slcan-and-Candlelight/tree/main)
+on a custom dev board, **CanableDevBoard FDCAN** — an STM32G431 CAN adapter with an
+**8 MHz HSE crystal**. An old FYSETC UCAN adapter is used as the known-working reference.
 
 This repository contains the complete local record of the bring-up: board identity,
-BOOT0 investigation, corrected firmware, SWD procedures, SocketCAN setup, and
+BOOT0 investigation, corrected 8 MHz firmware, SWD procedures, SocketCAN setup, and
 adapter-to-adapter test results. It is not a Python driver package; the driver/plugin work
 is tracked separately.
+
+## Upstream firmware
+
+- **Upstream project:** [Elmue/CANable-2.5-firmware-Slcan-and-Candlelight](https://github.com/Elmue/CANable-2.5-firmware-Slcan-and-Candlelight/tree/main)
+- **Goal:** adapt and validate ElmüSoft Candlelight 2.5 on this custom 8 MHz hardware (not the 16 MHz assumptions of stock upstream builds).
+- **Local adaptation:** a dedicated `CanableDevBoard_FDCAN` board definition, `QUARTZ_FREQU = 8000000`, and USB product string `CanableDevBoard FDCAN CAN adapter` (see [Firmware](#firmware) and [docs/CanableDevBoard_FDCAN.md](docs/CanableDevBoard_FDCAN.md)).
 
 ## Current status
 
